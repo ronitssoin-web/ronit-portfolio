@@ -80,144 +80,229 @@ function tick() {
 tick();
 setInterval(tick, 1000);
 
-// Total Viewcount — random start (64,000,000–64,500,000), +10 every 10s
+// Total Viewcount — odometer reels. Random start (64,000,000–64,500,000),
+// casino-style roll-up on load, then +10–45 every 5s. Each digit's motion blur
+// is driven by its LIVE speed (more blur the faster it moves), via a per-reel
+// SVG vertical-blur filter whose stdDeviation is updated each frame.
 (() => {
-  const el = document.getElementById('viewcount');
-  if (!el) return;
-  let count = 64000000 + Math.floor(Math.random() * 500001);
-  const render = () => el.textContent = count.toLocaleString('en-US');
-  render();
-  setInterval(() => { count += 10; render(); }, 10000);
+  const host = document.getElementById('viewcount');
+  if (!host) return;
+
+  let value = 64000000 + Math.floor(Math.random() * 500001);
+  const reels = [];
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const defs = document.createElementNS(SVGNS, 'svg');
+  defs.setAttribute('width', '0');
+  defs.setAttribute('height', '0');
+  defs.style.position = 'absolute';
+  document.body.appendChild(defs);
+
+  const BLUR_K = 6;    // px of blur per (px/ms) of speed
+  const BLUR_MAX = 9;
+
+  // Build a reel (0–9 twice, for seamless carry) + its own blur filter
+  host.innerHTML = '';
+  let idx = 0;
+  for (const ch of value.toLocaleString('en-US')) {
+    if (ch === ',') {
+      const c = document.createElement('span');
+      c.className = 'vc-comma';
+      c.textContent = ',';
+      host.appendChild(c);
+    } else {
+      const reel = document.createElement('span');
+      reel.className = 'vc-reel';
+      const strip = document.createElement('span');
+      strip.className = 'vc-strip';
+      for (let k = 0; k < 20; k++) {
+        const cell = document.createElement('span');
+        cell.className = 'vc-cell';
+        cell.textContent = k % 10;
+        strip.appendChild(cell);
+      }
+      reel.appendChild(strip);
+      host.appendChild(reel);
+
+      const blurId = 'vc-blur-' + idx++;
+      const filter = document.createElementNS(SVGNS, 'filter');
+      filter.id = blurId;
+      filter.setAttribute('x', '-50%');
+      filter.setAttribute('y', '-100%');
+      filter.setAttribute('width', '200%');
+      filter.setAttribute('height', '300%');
+      const fe = document.createElementNS(SVGNS, 'feGaussianBlur');
+      fe.setAttribute('stdDeviation', '0 0');
+      filter.appendChild(fe);
+      defs.appendChild(filter);
+
+      reels.push({ strip, cur: 0, target: +ch, t: null, raf: 0, blurId, fe });
+    }
+  }
+
+  // Live translateY of a strip in px (reads the interpolated transform)
+  function currentY(strip) {
+    const tr = getComputedStyle(strip).transform;
+    if (!tr || tr === 'none') return 0;
+    const m = tr.match(/matrix\(([^)]+)\)/);
+    if (!m) return 0;
+    return parseFloat(m[1].split(',')[5]) || 0;
+  }
+
+  // Update blur each frame from the reel's live speed, for `ms`, then clear
+  function blurDuring(reel, ms) {
+    cancelAnimationFrame(reel.raf);
+    reel.strip.style.filter = `url(#${reel.blurId})`;
+    let last = currentY(reel.strip);
+    let lastT = performance.now();
+    const start = lastT;
+    const step = (now) => {
+      const y = currentY(reel.strip);
+      const dt = now - lastT;
+      const speed = dt > 0 ? Math.abs(y - last) / dt : 0; // px per ms
+      reel.fe.setAttribute('stdDeviation', '0 ' + Math.min(BLUR_MAX, speed * BLUR_K).toFixed(2));
+      last = y;
+      lastT = now;
+      if (now - start < ms) {
+        reel.raf = requestAnimationFrame(step);
+      } else {
+        reel.fe.setAttribute('stdDeviation', '0 0');
+        reel.strip.style.filter = '';
+      }
+    };
+    reel.raf = requestAnimationFrame(step);
+  }
+
+  // Roll a reel forward to digit d (down through a carry when wrapping)
+  function roll(reel, d) {
+    if (d === reel.cur) return;
+    const wrap = d < reel.cur;
+    reel.strip.style.transform = `translateY(-${wrap ? d + 10 : d}em)`;
+    reel.cur = d;
+    blurDuring(reel, 950);
+    clearTimeout(reel.t);
+    reel.t = setTimeout(() => {
+      if (wrap) {
+        // snap from the 2nd cycle back to the 1st without animating
+        reel.strip.style.transition = 'none';
+        reel.strip.style.transform = `translateY(-${d}em)`;
+        void reel.strip.offsetHeight; // reflow
+        reel.strip.style.transition = '';
+      }
+    }, 950);
+  }
+
+  function show() {
+    let i = 0;
+    for (const ch of value.toLocaleString('en-US')) {
+      if (ch === ',') continue;
+      const reel = reels[i++];
+      if (reel) roll(reel, +ch);
+    }
+  }
+
+  // Casino-style load: from 00,000,000 up to the value, left→right stagger
+  requestAnimationFrame(() => {
+    reels.forEach((reel, i) => {
+      reel.strip.style.transition = 'transform 1.2s cubic-bezier(.2, .75, .2, 1)';
+      reel.strip.style.transitionDelay = (i * 0.06) + 's';
+      reel.strip.style.transform = `translateY(-${reel.target}em)`;
+      reel.cur = reel.target;
+      if (reel.target > 0) blurDuring(reel, 1300 + i * 60);
+      setTimeout(() => {
+        reel.strip.style.transition = '';
+        reel.strip.style.transitionDelay = '';
+      }, 1350 + i * 60);
+    });
+  });
+
+  // Randomized increments (+10–45) every 5s
+  setInterval(() => {
+    value += 10 + Math.floor(Math.random() * 36);
+    show();
+  }, 5000);
 })();
 
-// Stuff I've Done — autoplay nudge for static isometric video row
+// Stuff I've Done — auto-scrolling marquee. Pauses on hover (CSS), and hovering
+// a clip turns its matching keyword black. Only on-screen videos play (perf).
 (() => {
   const stack = document.getElementById('video-stack');
-  if (!stack) return;
+  const deck = stack && stack.querySelector('.video-deck');
+  if (!deck) return;
 
-  const videos = [...stack.querySelectorAll('video')];
-  const playAll = () => videos.forEach(v => { v.muted = true; v.play().catch(() => {}); });
+  // [filename, keyword] — keyword matches data-kw in the sublist
+  const VIDEOS = [
+    ['voice-agents', 'launch'],
+    ['proposal', 'adfilms'],
+    ['daryaaft', 'music'],
+    ['aston-martin', 'youtube'],
+    ['flemingo', 'motion'],
+    ['nigeria', 'map'],
+    ['therapy', 'adfilms'],
+    ['denial', 'music'],
+    ['lightning-tts', 'launch'],
+    ['bitcoin', 'youtube'],
+    ['biz-breakdowns', 'motion'],
+    ['map-animation', 'map'],
+    ['rehab', 'adfilms'],
+    ['pulse-stt', 'launch'],
+    ['iltejah', 'music'],
+    ['ferrari', 'youtube'],
+    ['biden', 'motion'],
+    ['kcc-sikkim', 'map'],
+    ['tenstorrent', 'launch'],
+    ['dunki', 'youtube'],
+    ['sex', 'adfilms'],
+    ['lightning-v3', 'launch'],
+    ['patanjali', 'youtube'],
+  ];
 
-  videos.forEach(v => {
-    v.muted = true;
-    v.play().catch(() => {});
-    v.addEventListener('canplay',    () => v.play().catch(() => {}), { once: true });
-    v.addEventListener('loadeddata', () => v.play().catch(() => {}), { once: true });
-  });
+  const kws = {};
+  document.querySelectorAll('.stuff-sublist .kw').forEach(el => { kws[el.dataset.kw] = el; });
 
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) playAll(); });
-    }, { threshold: 0.2 }).observe(stack);
-  }
-
-  const onInteract = () => {
-    playAll();
-    ['pointerdown', 'keydown', 'scroll'].forEach(ev => window.removeEventListener(ev, onInteract));
-  };
-  window.addEventListener('pointerdown', onInteract, { passive: true });
-  window.addEventListener('keydown', onInteract);
-  window.addEventListener('scroll', onInteract, { passive: true });
-
-  /* ---- Sticky focus interaction (desktop) ----
-     Hover any card (when none is focused) → it flattens, scales up and slides
-     to centre; the others fan out to the sides and darken. State is sticky:
-     once focused, hovering does nothing — only a CLICK moves focus to another
-     card. Click the focused card again (or press Esc) to return to the row. */
-  const deck = stack.querySelector('.video-deck');
-  const cards = [...stack.querySelectorAll('.video-card')];
-  const n = cards.length;
-  const STEP = 231;            // resting card spacing (tuned via tune.html)
-  const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
-  let focused = null;
-
-  function rowLayout() {
-    cards.forEach((card, i) => {
-      const x = (i - (n - 1) / 2) * STEP;
-      card.style.transform = `translate(calc(-50% + ${x}px), -50%) perspective(600px) rotateY(20deg)`;
-      card.style.filter = '';
-      card.style.zIndex = i + 1;
-      card.style.boxShadow = '';
-    });
-  }
-
-  function focusLayout(f) {
-    cards.forEach((card, i) => {
-      const o = i - f;
-      if (o === 0) {
-        card.style.transform = 'translate(-50%, -50%) perspective(900px) rotateY(0deg) scale(1.18)';
-        card.style.filter = 'brightness(1)';
-        card.style.zIndex = 100;
-        card.style.boxShadow = '0 24px 60px rgba(0, 0, 0, 0.45)';
-      } else {
-        const dir = o < 0 ? -1 : 1;
-        const d = Math.abs(o);
-        const x = dir * (175 + (d - 1) * 52);
-        const rot = dir < 0 ? 34 : -34;
-        const scale = Math.max(0.6, 0.82 - (d - 1) * 0.07);
-        const bright = Math.max(0.28, 0.6 - (d - 1) * 0.14);
-        card.style.transform = `translate(calc(-50% + ${x}px), -50%) perspective(800px) rotateY(${rot}deg) scale(${scale})`;
-        card.style.filter = `brightness(${bright})`;
-        card.style.zIndex = 100 - d;
-        card.style.boxShadow = '-8px 12px 28px rgba(0, 0, 0, 0.3)';
-      }
-    });
-  }
-
-  function enable() {
-    deck.classList.add('js-active');
-    focused === null ? rowLayout() : focusLayout(focused);
-  }
-
-  function disable() {
-    deck.classList.remove('js-active');
-    cards.forEach(card => {
-      card.style.transform = '';
-      card.style.filter = '';
-      card.style.zIndex = '';
-      card.style.boxShadow = '';
-    });
-  }
-
-  cards.forEach((card, i) => {
-    card.addEventListener('mouseenter', () => {
-      if (!isDesktop() || focused !== null) return;  // sticky: hover only initiates
-      focused = i;
-      focusLayout(i);
-    });
-    card.addEventListener('click', () => {
-      if (!isDesktop()) return;
-      if (focused === i) { focused = null; rowLayout(); }   // click focused → back to row
-      else { focused = i; focusLayout(i); }                 // click another → switch focus
-    });
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && focused !== null) {
-      focused = null;
-      if (isDesktop()) rowLayout();
+  function makeCard(file, kw) {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    const v = document.createElement('video');
+    v.src = 'videos/' + file + '.mp4';
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    card.appendChild(v);
+    const kwEl = kws[kw];
+    if (kwEl) {
+      card.addEventListener('mouseenter', () => kwEl.classList.add('active'));
+      card.addEventListener('mouseleave', () => kwEl.classList.remove('active'));
     }
-  });
-
-  // Leaving the whole section → drop focus, back to the resting isometric row
-  const section = stack.closest('.stuff-section');
-  if (section) {
-    section.addEventListener('mouseleave', () => {
-      if (!isDesktop() || focused === null) return;
-      focused = null;
-      rowLayout();
-    });
+    return card;
   }
 
-  if (isDesktop()) enable();
-
-  let wasDesktop = isDesktop();
-  window.addEventListener('resize', () => {
-    const d = isDesktop();
-    if (d === wasDesktop) return;
-    wasDesktop = d;
-    if (d) { enable(); } else { focused = null; disable(); }
+  // Build the set, then a clone of it, for a seamless translateX(-50%) loop
+  deck.innerHTML = '';
+  VIDEOS.forEach(([f, kw]) => deck.appendChild(makeCard(f, kw)));
+  VIDEOS.forEach(([f, kw]) => {
+    const c = makeCard(f, kw);
+    c.setAttribute('aria-hidden', 'true');
+    deck.appendChild(c);
   });
+
+  // Shift the marquee by exactly one set's width (handles the overlap margins)
+  const setStart = deck.children[VIDEOS.length].offsetLeft;
+  deck.style.setProperty('--vc-shift', setStart + 'px');
+
+  // Play only the videos currently on-screen (rect-based: the marquee moves
+  // cards via transform, which IntersectionObserver doesn't track reliably).
+  const vids = [...deck.querySelectorAll('video')];
+  function updatePlayback() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    vids.forEach(v => {
+      const r = v.getBoundingClientRect();
+      const onScreen = r.right > -60 && r.left < vw + 60 && r.bottom > 0 && r.top < vh;
+      if (onScreen) { if (v.paused) v.play().catch(() => {}); }
+      else if (!v.paused) v.pause();
+    });
+  }
+  updatePlayback();
+  setInterval(updatePlayback, 250);
 })();
 
 // Reveal sections on scroll
@@ -233,6 +318,33 @@ const observer = new IntersectionObserver(
   { threshold: 0.1 }
 );
 document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+// Carousel arrow buttons (mobile) — scroll their target row left/right
+document.querySelectorAll('.carousel-nav').forEach((nav) => {
+  const target = document.querySelector(nav.dataset.target);
+  if (!target) return;
+  nav.querySelectorAll('.carousel-arrow').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const dir = btn.classList.contains('next') ? 1 : -1;
+      target.scrollBy({ left: dir * target.clientWidth * 0.8, behavior: 'smooth' });
+    });
+  });
+});
+
+// Theme toggle — dark is default; button switches to light and persists
+(() => {
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const sync = () => { btn.textContent = root.classList.contains('light') ? 'Dark mode' : 'Light mode'; };
+  sync();
+  btn.addEventListener('click', () => {
+    const light = !root.classList.contains('light');
+    root.classList.toggle('light', light);
+    try { localStorage.setItem('theme', light ? 'light' : 'dark'); } catch (e) {}
+    sync();
+  });
+})();
 
 // Vercel Speed Insights
 (function() {

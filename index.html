@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try{if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light')}catch(e){}</script>
   <title>Ronit Soin</title>
   <meta name="description" content="hey, i'm ronit. i build internet things. welcome to my corner of the internet.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=34">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=45">
 </head>
 <body>
 
@@ -45,7 +46,7 @@
     <!-- ============ TOTAL VIEWCOUNT ============ -->
     <section class="section reveal viewcount-section">
       <h2 class="section-label">Total Viewcount</h2>
-      <p class="viewcount" id="viewcount">64,000,000</p>
+      <div class="viewcount" id="viewcount" aria-label="Total viewcount"></div>
     </section>
 
     <!-- ============ EXPERIENCE ============ -->
@@ -79,8 +80,7 @@
           <div>
             <h3><span class="role">Freelance Video Editor / MoGraph Designer</span></h3>
             <ul class="timeline-bullets">
-              <li>Notable Clients include: Soch by Mohak Mangal, Trent &amp; Heath, Faultline, Flemingo International, Stormin's Cellar, Kalshi, Rob Landes. +40M views</li>
-              <li>Grew and produced a mini-documentary YouTube channel to 6.5K subscribers and +500k views.</li>
+              <li>Notable Clients include: <a href="https://www.youtube.com/@mohak_mangal" target="_blank" rel="noopener">Soch by Mohak Mangal</a>, <a href="https://www.youtube.com/@TrentonHeath" target="_blank" rel="noopener">Trent &amp; Heath</a>, <a href="https://www.youtube.com/@Faultlinevideos" target="_blank" rel="noopener">Faultline</a>, <a href="https://www.flemingo-intl.com/" target="_blank" rel="noopener">Flemingo International</a>, <a href="https://www.youtube.com/@Faultlinevideos" target="_blank" rel="noopener">Stormin's Cellar</a>, <a href="https://www.youtube.com/@kalshi_markets" target="_blank" rel="noopener">Kalshi</a>, <a href="https://www.youtube.com/@RobLandes" target="_blank" rel="noopener">Rob Landes</a>. +40M views</li>
             </ul>
           </div>
         </li>
@@ -89,18 +89,16 @@
 
     <!-- ============ STUFF I'VE DONE (video stack) ============ -->
     <section class="stuff-section" aria-label="Stuff I've done">
-      <p class="section-label center">Stuff I've Done</p>
-      <p class="stuff-sublist center">Launch Videos. Motion Graphics. YouTube Videos. Map Animations. Ad Films. Music Videos.</p>
+      <div class="stuff-head">
+        <p class="section-label">Stuff I've Done</p>
+        <p class="stuff-sublist"><span class="kw" data-kw="launch">Launch Videos.</span> <span class="kw" data-kw="motion">Motion Graphics.</span> <span class="kw" data-kw="youtube">YouTube Videos.</span> <span class="kw" data-kw="map">Map Animations.</span> <span class="kw" data-kw="adfilms">Ad Films.</span> <span class="kw" data-kw="music">Music Videos.</span></p>
+      </div>
       <div class="video-stack" id="video-stack">
-        <div class="video-deck">
-          <div class="video-card"><video src="videos/voice-agents.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/rehab.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/pulse-stt.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/proposal.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/nigeria.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/lightning-tts.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-          <div class="video-card"><video src="videos/biden.mp4" autoplay muted loop playsinline preload="auto"></video></div>
-        </div>
+        <div class="video-deck"></div>
+      </div>
+      <div class="carousel-nav" data-target="#video-stack">
+        <button class="carousel-arrow prev" type="button" aria-label="Previous videos">&#8249;</button>
+        <button class="carousel-arrow next" type="button" aria-label="Next videos">&#8250;</button>
       </div>
     </section>
 
@@ -111,7 +109,6 @@
         <li><img src="assets/AE.png" alt="After Effects" class="stack-icon" title="After Effects"></li>
         <li><img src="assets/PR.png" alt="Premiere Pro" class="stack-icon" title="Premiere Pro"></li>
         <li><img src="assets/Figma.png" alt="Figma" class="stack-icon" title="Figma"></li>
-        <li><img src="assets/Arc.png" alt="Arc" class="stack-icon" title="Arc"></li>
         <li><img src="assets/Logic%20Pro%20X.png" alt="Logic Pro X" class="stack-icon" title="Logic Pro X"></li>
         <li><img src="assets/DaVinci.png" alt="DaVinci Resolve" class="stack-icon" title="DaVinci Resolve"></li>
         <li><img src="assets/Claude.png" alt="Claude" class="stack-icon" title="Claude"></li>
@@ -125,7 +122,7 @@
     <!-- ============ MY SONGS ============ -->
     <section id="songs" class="section reveal">
       <h2 class="section-label">My Songs</h2>
-      <div class="songs-grid">
+      <div class="songs-grid" id="songs-grid">
         <a href="https://open.spotify.com/track/4KpmLlZ01xwtKZdoAzW7HP" class="song-card" target="_blank" rel="noopener" aria-label="Daryaaft on Spotify">
           <div class="album-art" style="background-image: url('https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02104801bc0731f2a288609cf5'); background-size: cover; background-position: center;"></div>
           <p class="song-title">Daryaaft</p>
@@ -138,6 +135,10 @@
           <div class="album-art" style="background-image: url('https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02557863d0f5f71f81bd6bfab5'); background-size: cover; background-position: center;"></div>
           <p class="song-title">Gumshuda</p>
         </a>
+      </div>
+      <div class="carousel-nav" data-target="#songs-grid">
+        <button class="carousel-arrow prev" type="button" aria-label="Previous songs">&#8249;</button>
+        <button class="carousel-arrow next" type="button" aria-label="Next songs">&#8250;</button>
       </div>
     </section>
 
@@ -185,8 +186,12 @@
     <span id="utc-clock" aria-label="Current UTC time">00:00:00 UTC</span>
   </footer>
 
+  <div class="theme-toggle-wrap">
+    <button id="theme-toggle" type="button">Light mode</button>
+  </div>
+
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=32"></script>
+  <script src="script.js?v=43"></script>
 </body>
 </html>
