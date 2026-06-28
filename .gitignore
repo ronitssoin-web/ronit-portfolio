@@ -1,0 +1,14 @@
+# Heavy original videos — compressed web versions live in /videos and are committed.
+# Originals stay local as backup, not pushed.
+videos carousel/
+
+# macOS
+.DS_Store
+
+# Editor / tooling
+.claude/
+.vscode/
+
+# Logs & temp
+*.log
+scratchpad/
