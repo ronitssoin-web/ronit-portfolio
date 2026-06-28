@@ -1,0 +1,20 @@
+{
+  "name": "ronit-portfolio",
+  "version": "1.0.0",
+  "description": "Ronit Soin's portfolio website",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site - no build step required'",
+    "lint": "echo 'No linter configured yet'"
+  },
+  "keywords": [
+    "portfolio",
+    "static-site"
+  ],
+  "author": "Ronit Soin",
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}

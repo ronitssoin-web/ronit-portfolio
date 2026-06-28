@@ -233,3 +233,17 @@ const observer = new IntersectionObserver(
   { threshold: 0.1 }
 );
 document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+// Vercel Speed Insights
+(function() {
+  if (typeof window === 'undefined') return;
+  
+  window.si = window.si || function() {
+    (window.siq = window.siq || []).push(arguments);
+  };
+  
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = '/_vercel/speed-insights/script.js';
+  document.head.appendChild(script);
+})();
