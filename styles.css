@@ -67,12 +67,12 @@ main {
 .nav a:hover { color: var(--text); }
 
 /* ============ Hero ============ */
-.hero { padding: 80px 0 64px; }
+.hero { padding: 80px 0 32px; }
 
 .hero-avatar {
   width: 64px;
   height: 64px;
-  border-radius: 50%;
+  border-radius: 10px;
   object-fit: cover;
   object-position: center top;
   display: block;
@@ -155,6 +155,9 @@ kbd {
 .section-intro { color: var(--muted); margin: -8px 0 32px; max-width: 50ch; }
 
 /* Total Viewcount — live counter */
+.viewcount-section { padding: 32px 0; }
+.viewcount-section .section-label { margin-bottom: 0; }
+
 .viewcount {
   font-family: var(--mono);
   font-size: 44px;
@@ -167,7 +170,7 @@ kbd {
 /* Stuff I've Done — descriptor line under the heading (matches heading style, 16px) */
 .stuff-sublist {
   font-family: var(--mono);
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--faint);
@@ -402,69 +405,6 @@ kbd {
 
 .writing-list a:hover .post-title { color: var(--muted); }
 
-/* ============ Personal ============ */
-.personal-card {
-  width: 100%;
-  background: #e5e5e5;
-  border-radius: 10px;
-  padding: 10px 10px 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.personal-inner {
-  background: #fafafa;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.personal-art {
-  flex-shrink: 0;
-  width: 60px;
-  height: 60px;
-  border-radius: 5px;
-  background-size: cover;
-  background-position: center;
-}
-
-.personal-info { display: flex; flex-direction: column; gap: 3px; }
-
-.personal-title {
-  font-size: 18px;
-  font-weight: 400;
-  color: #010101;
-}
-
-.personal-artist {
-  font-size: 18px;
-  color: #404040;
-}
-
-.personal-chin {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 2px 3px;
-  text-decoration: none;
-  color: #404040;
-  transition: opacity 0.15s;
-}
-
-.personal-chin:hover { opacity: 0.7; }
-
-.personal-chin-left { font-size: 10px; }
-
-.personal-chin-right {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 10px;
-}
-
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -499,14 +439,19 @@ kbd {
 
 
 /* ============ Contact / chat ============ */
-.chat { display: flex; flex-direction: column; gap: 10px; }
+.chat { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
 
 .bubble {
-  max-width: 75%;
+  max-width: 250px;
   padding: 10px 14px;
   border-radius: 16px;
   font-size: 14px;
 }
+
+/* Bubbles that hold interactive content (form / social buttons) */
+.form-bubble,
+.social-bubble { display: flex; flex-direction: column; gap: 10px; }
+.bubble-text { margin: 0; }
 
 .bubble.them {
   align-self: flex-end;
@@ -544,12 +489,11 @@ kbd {
 .email-bubble button:hover { opacity: 0.85; }
 
 .chat-form {
-  align-self: flex-start;
-  width: 75%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 6px 0;
+  margin: 0;
 }
 
 .chat-form input,
@@ -571,8 +515,8 @@ kbd {
   align-self: flex-start;
   font-family: var(--mono);
   font-size: 13px;
-  background: var(--text);
-  color: var(--bg);
+  background: var(--bg);
+  color: var(--text);
   border: none;
   border-radius: 8px;
   padding: 8px 20px;
@@ -581,7 +525,8 @@ kbd {
 
 .chat-form button:hover { opacity: 0.85; }
 
-.social-row { display: flex; flex-wrap: wrap; gap: 8px; align-self: flex-start; margin: 6px 0; }
+.social-row { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.social-row .pill { text-align: center; }
 
 .pill {
   font-family: var(--mono);
@@ -596,24 +541,6 @@ kbd {
 }
 
 .pill:hover { color: var(--text); border-color: var(--faint); }
-
-/* ============ Quote ============ */
-.quote { padding: 80px 0; border-top: 1px solid var(--border); text-align: center; }
-
-.quote-kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--faint);
-  margin-bottom: 16px;
-}
-
-.quote blockquote {
-  font-size: clamp(20px, 4vw, 26px);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
 
 /* ============ Footer ============ */
 .site-footer {
