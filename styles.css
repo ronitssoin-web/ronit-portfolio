@@ -268,7 +268,7 @@ kbd {
 }
 
 .timeline-bullets a {
-  color: var(--text);
+  color: inherit; /* same colour as the bullet text, even when hyperlinked */
   text-decoration: underline;
   text-underline-offset: 2px;
 }
