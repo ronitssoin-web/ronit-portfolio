@@ -80,14 +80,14 @@ function tick() {
 tick();
 setInterval(tick, 1000);
 
-// Total Viewcount — random start (64,000,000–64,500,000), +10 every 2s
+// Total Viewcount — random start (64,000,000–64,500,000), +10 every 10s
 (() => {
   const el = document.getElementById('viewcount');
   if (!el) return;
   let count = 64000000 + Math.floor(Math.random() * 500001);
   const render = () => el.textContent = count.toLocaleString('en-US');
   render();
-  setInterval(() => { count += 10; render(); }, 2000);
+  setInterval(() => { count += 10; render(); }, 10000);
 })();
 
 // Stuff I've Done — autoplay nudge for static isometric video row
