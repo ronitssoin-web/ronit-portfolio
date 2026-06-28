@@ -12,3 +12,6 @@ videos carousel/
 # Logs & temp
 *.log
 scratchpad/
+
+# Dev-only carousel tuning dashboard — never ship
+tune.html
