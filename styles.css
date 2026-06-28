@@ -154,6 +154,29 @@ kbd {
 
 .section-intro { color: var(--muted); margin: -8px 0 32px; max-width: 50ch; }
 
+/* Total Viewcount — live counter */
+.viewcount {
+  font-family: var(--mono);
+  font-size: 44px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stuff I've Done — descriptor line under the heading (matches heading style, 16px) */
+.stuff-sublist {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  margin: -12px 0 4px;
+  padding: 0 24px;
+}
+
+.stuff-sublist.center { text-align: center; }
+
 /* ============ Timeline ============ */
 .timeline { list-style: none; display: flex; flex-direction: column; gap: 32px; }
 
@@ -225,18 +248,33 @@ kbd {
   align-items: center;
 }
 
+/* JS-driven focus mode (desktop): cards are absolutely centered and
+   positioned via inline transforms so default ⇄ focused animates smoothly. */
+.video-deck.js-active {
+  position: relative;
+  width: 100%;
+  height: 250px;
+}
+.video-deck.js-active .video-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: 0;
+}
+
 .video-card {
   flex: 0 0 auto;
-  width: 290px;
+  width: 326.25px;
   margin-left: -95px;
   border-radius: 10px;
   overflow: hidden;
   background: #000;
   box-shadow: -8px 12px 28px rgba(0, 0, 0, 0.22);
   transform: perspective(600px) rotateY(20deg);
-  transition: transform 0.45s cubic-bezier(.2, .75, .25, 1), box-shadow 0.45s, filter 0.45s;
+  transition: transform 0.5s cubic-bezier(.2, .75, .25, 1), box-shadow 0.5s, filter 0.5s;
   cursor: pointer;
-  will-change: transform;
+  will-change: transform, filter;
+  backface-visibility: hidden;
 }
 
 .video-card:first-child { margin-left: 0; }
