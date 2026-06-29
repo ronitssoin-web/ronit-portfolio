@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=53">
+  <link rel="stylesheet" href="styles.css?v=54">
 </head>
 <body>
 
@@ -42,7 +42,10 @@
         distribution for companies and creators. Welcome to my corner of the
         internet.
       </p>
-      <p class="hint">Press <kbd id="copy-key">c</kbd> to copy my email</p>
+      <button class="hint" id="copy-hint" type="button">
+        <span class="hint-press">Press <kbd id="copy-key">c</kbd> to copy my email</span>
+        <span class="hint-tap">Click here to copy my email to clipboard</span>
+      </button>
     </section>
 
     <!-- ============ TOTAL VIEWCOUNT ============ -->
@@ -155,13 +158,14 @@
     <section id="contact" class="section reveal">
       <h2 class="section-label">Contact</h2>
       <div class="chat">
-        <p class="bubble them">hey</p>
         <p class="bubble them">how do i actually reach you?</p>
         <p class="bubble me">heyoo</p>
-        <p class="bubble me">fastest way is email!</p>
         <div class="bubble me email-bubble">
-          <span id="email-text">ronitssoin@gmail.com</span>
-          <button id="copy-email" type="button">Copy</button>
+          <p class="bubble-text">fastest way is email!</p>
+          <div class="email-line">
+            <span id="email-text">ronitssoin@gmail.com</span>
+            <button id="copy-email" type="button">Copy</button>
+          </div>
         </div>
         <p class="bubble them">too lazy to email tho</p>
         <div class="bubble me form-bubble">
@@ -210,6 +214,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=49"></script>
+  <script src="script.js?v=50"></script>
 </body>
 </html>
