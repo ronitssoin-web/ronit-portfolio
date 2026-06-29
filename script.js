@@ -260,23 +260,47 @@ setInterval(tick, 1000);
   const kws = {};
   document.querySelectorAll('.stuff-sublist .kw').forEach(el => { kws[el.dataset.kw] = el; });
 
+  // filename → [description, link] for the hover caption
+  const DESC = {
+    'aston-martin': ['Zero Drag YT Channel', 'https://www.youtube.com/watch?v=Toq2fSVXyLQ'],
+    'biden': ['Kalshi Markets', 'https://youtu.be/Mx1pi0CwKko?list=PLCBout5SgRtWBFIKwedO0wl4QlwMuyAFY'],
+    'bitcoin': ['Soch by Mohak Mangal', 'https://youtu.be/Q4c_NLY_LFs?list=PLnfMWh6m4WxeRkxMNyc17RKkCMkcMmrv6'],
+    'daryaaft': ['Daryaaft Music Video', 'https://www.youtube.com/watch?v=sodPJHTtCLM'],
+    'denial': ['Denial Music Video', 'https://www.youtube.com/watch?v=nYPqMF4mR1o'],
+    'dunki': ['Skillbee', 'https://www.youtube.com/shorts/juk49QN6SjI?feature=share'],
+    'ferrari': ['Zero Drag YT Channel', 'https://www.youtube.com/watch?v=3ZJax7CMBBo&t=25s'],
+    'flemingo': ['Corporate MoGraph Video', 'https://youtu.be/_F5vPv8n_mk'],
+    'iltejah': ['Iltejah Music Video', 'https://www.youtube.com/watch?v=UkdgBBE29jA'],
+    'kcc-sikkim': ['UN Documentary', 'https://www.youtube.com/watch?v=yLfU3B9Pkkc&t=96s'],
+    'lightning-tts': ['TTS Model Launch', 'https://x.com/smallest_AI/status/1922532241348985031?s=20'],
+    'lightning-v3': ['TTS Model Launch', 'https://youtu.be/7Li7EADuvFs'],
+    'map-animation': ['Map Animation', 'https://youtu.be/wYGZGAGNvOA'],
+    'nigeria': ['Faultline YT Channel', 'https://www.youtube.com/watch?v=puOu1BRZ3ZQ&t=163s'],
+    'patanjali': ['Soch by Mohak Mangal', 'https://youtu.be/2dWM4tag0_E?list=PLnfMWh6m4WxeRkxMNyc17RKkCMkcMmrv6'],
+    'proposal': ['Smallest.ai Ad Film', 'https://x.com/kamath_sutra/status/2056741834840486245?s=20'],
+    'pulse-stt': ['Smallest.ai Launch Video (unreleased)', 'https://youtu.be/AGawIWpWaZE'],
+    'rehab': ['Smallest.ai Ad Film (unreleased)', 'https://youtu.be/JG7Rpfmmf0g'],
+    'sex': ['Smallest.ai Ad Film (unreleased)', 'https://youtu.be/ilDBFoTWxZU'],
+    'tenstorrent': ['Partnership Launch Film', 'https://x.com/smallest_AI/status/2052732202253684859?s=20'],
+    'therapy': ['Smallest.ai Ad Film (unreleased)', 'https://youtu.be/IbU61017uTc'],
+    'voice-agents': ['Voice Agents Launch Video', 'https://youtu.be/G70SlkNsRxk'],
+    // biz-breakdowns: no description provided
+  };
+
   function makeCard(file, kw) {
     const card = document.createElement('div');
     card.className = 'video-card';
+    card.dataset.kw = kw;
+    card.dataset.file = file;
     const v = document.createElement('video');
     v.src = 'videos/' + file + '.mp4';
     v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
     v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
     card.appendChild(v);
-    const kwEl = kws[kw];
-    if (kwEl) {
-      card.addEventListener('mouseenter', () => kwEl.classList.add('active'));
-      card.addEventListener('mouseleave', () => kwEl.classList.remove('active'));
-    }
     return card;
   }
 
-  // Build the set, then a clone of it, for a seamless translateX(-50%) loop
+  // Build the set, then a clone of it, for a seamless translateX loop
   deck.innerHTML = '';
   VIDEOS.forEach(([f, kw]) => deck.appendChild(makeCard(f, kw)));
   VIDEOS.forEach(([f, kw]) => {
@@ -284,10 +308,76 @@ setInterval(tick, 1000);
     c.setAttribute('aria-hidden', 'true');
     deck.appendChild(c);
   });
+  const cards = [...deck.querySelectorAll('.video-card')];
 
   // Shift the marquee by exactly one set's width (handles the overlap margins)
-  const setStart = deck.children[VIDEOS.length].offsetLeft;
-  deck.style.setProperty('--vc-shift', setStart + 'px');
+  deck.style.setProperty('--vc-shift', deck.children[VIDEOS.length].offsetLeft + 'px');
+
+  /* ---- Desktop hover focus ----
+     Center the clip under the cursor, scale it up 20%, dim the rest, light its
+     keyword and show its caption. The target is picked by the cursor's layout
+     slot (offsetLeft) — unaffected by transforms — so the centered card never
+     slides out from under the cursor and causes oscillation. */
+  const caption = document.getElementById('video-caption');
+  const track = stack.querySelector('.video-track');
+  const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
+  let active = null;
+  let baseLeft = null; // deck's frozen screen-left at hover start — a stable slot anchor
+
+  function clearActive() {
+    if (!active) return;
+    active.classList.remove('focused');
+    active.style.transform = '';
+    active.style.zIndex = '';
+    const kwEl = kws[active.dataset.kw];
+    if (kwEl) kwEl.classList.remove('active');
+    active = null;
+  }
+
+  function deactivate() {
+    clearActive();
+    if (track) track.style.transform = '';
+    if (caption) caption.classList.remove('show');
+    baseLeft = null;
+  }
+
+  function activate(card) {
+    if (card === active) return;
+    clearActive();
+    active = card;
+    // slide the whole row so this clip sits at viewport centre (others move in tandem)
+    const V = window.innerWidth / 2 - baseLeft - card.offsetLeft - card.offsetWidth / 2;
+    if (track) track.style.transform = `translateX(${V}px)`;
+    card.style.transform = 'perspective(900px) rotateY(0deg) scale(1.2)';
+    card.style.zIndex = '50';
+    card.classList.add('focused');
+    const kwEl = kws[card.dataset.kw];
+    if (kwEl) kwEl.classList.add('active');
+    if (caption) {
+      const meta = DESC[card.dataset.file];
+      if (meta) {
+        caption.innerHTML = `<a href="${meta[1]}" target="_blank" rel="noopener">${meta[0]}</a>`;
+        caption.classList.add('show');
+      } else {
+        caption.classList.remove('show');
+        caption.innerHTML = '';
+      }
+    }
+  }
+
+  stack.addEventListener('mousemove', (e) => {
+    if (!isDesktop()) return;
+    // capture the anchor once the marquee has paused; keep it fixed for the
+    // whole hover so the cursor→clip mapping doesn't drift as the row slides
+    if (baseLeft === null) baseLeft = deck.getBoundingClientRect().left;
+    const x = e.clientX - baseLeft;
+    let target = null;
+    for (const card of cards) {
+      if (x >= card.offsetLeft && x < card.offsetLeft + card.offsetWidth) target = card;
+    }
+    if (target) activate(target);
+  });
+  stack.addEventListener('mouseleave', () => { if (isDesktop()) deactivate(); });
 
   // Play only the videos currently on-screen (rect-based: the marquee moves
   // cards via transform, which IntersectionObserver doesn't track reliably).

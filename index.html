@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=45">
+  <link rel="stylesheet" href="styles.css?v=47">
 </head>
 <body>
 
@@ -28,7 +28,9 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero reveal">
-      <img src="display%20picture/Ronit%20dp.JPG" alt="Ronit Soin" class="hero-avatar">
+      <div class="hero-avatar">
+        <div class="hero-avatar-img" role="img" aria-label="Ronit Soin" style="background-image: url('display%20picture/Ronit%20dp.JPG')"></div>
+      </div>
       <div class="hero-identity">
         <span class="hero-name">Ronit Singh Soin</span>
         <img class="verified-badge" src="favicon/verified-badge.png" alt="Verified" width="18" height="18">
@@ -94,8 +96,11 @@
         <p class="stuff-sublist"><span class="kw" data-kw="launch">Launch Videos.</span> <span class="kw" data-kw="motion">Motion Graphics.</span> <span class="kw" data-kw="youtube">YouTube Videos.</span> <span class="kw" data-kw="map">Map Animations.</span> <span class="kw" data-kw="adfilms">Ad Films.</span> <span class="kw" data-kw="music">Music Videos.</span></p>
       </div>
       <div class="video-stack" id="video-stack">
-        <div class="video-deck"></div>
+        <div class="video-track">
+          <div class="video-deck"></div>
+        </div>
       </div>
+      <p class="video-caption" id="video-caption"></p>
       <div class="carousel-nav" data-target="#video-stack">
         <button class="carousel-arrow prev" type="button" aria-label="Previous videos">&#8249;</button>
         <button class="carousel-arrow next" type="button" aria-label="Next videos">&#8250;</button>
@@ -192,6 +197,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=43"></script>
+  <script src="script.js?v=45"></script>
 </body>
 </html>

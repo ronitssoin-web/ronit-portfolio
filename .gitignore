@@ -13,8 +13,9 @@ videos carousel/
 *.log
 scratchpad/
 
-# Dev-only carousel tuning dashboard — never ship
+# Dev-only tuning dashboards — never ship
 tune.html
+tune-dp.html
 
 # Dependencies
 node_modules/
