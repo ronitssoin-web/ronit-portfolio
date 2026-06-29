@@ -9,19 +9,27 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
-// Flash the "c" key-hint into a tick (no toast)
+// Copy feedback: flash the "c" key-hint into a tick (desktop) + swap the
+// mobile tap-button label. No toast.
 const copyKey = document.getElementById('copy-key');
-let keyTimer;
-function flashTick() {
-  if (!copyKey) return;
-  copyKey.textContent = '✓';
-  copyKey.classList.add('copied');
-  clearTimeout(keyTimer);
-  keyTimer = setTimeout(() => { copyKey.textContent = 'c'; copyKey.classList.remove('copied'); }, 1500);
+const tapSpan = document.querySelector('.hint-tap');
+let keyTimer, tapTimer;
+function onCopied() {
+  if (copyKey) {
+    copyKey.textContent = '✓';
+    copyKey.classList.add('copied');
+    clearTimeout(keyTimer);
+    keyTimer = setTimeout(() => { copyKey.textContent = 'c'; copyKey.classList.remove('copied'); }, 1500);
+  }
+  if (tapSpan) {
+    tapSpan.textContent = 'Copied to clipboard ✓';
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { tapSpan.textContent = 'Click here to copy my email to clipboard'; }, 1500);
+  }
 }
 
 function copyEmail() {
-  navigator.clipboard.writeText(EMAIL).then(flashTick, () => {});
+  navigator.clipboard.writeText(EMAIL).then(onCopied, () => {});
 }
 
 // Press "c" anywhere (outside inputs) to copy email
@@ -32,6 +40,10 @@ document.addEventListener('keydown', (e) => {
     copyEmail();
   }
 });
+
+// The hint itself is a button (tap to copy — primary path on mobile)
+const copyHint = document.getElementById('copy-hint');
+if (copyHint) copyHint.addEventListener('click', copyEmail);
 
 // In-chat Copy button — brief "Copied" label instead of a toast
 const copyBtn = document.getElementById('copy-email');
@@ -434,15 +446,28 @@ const observer = new IntersectionObserver(
 );
 document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
-// Carousel arrow buttons (mobile) — scroll their target row left/right
+// Carousel arrow buttons (mobile) — center the next/prev card in the frame
 document.querySelectorAll('.carousel-nav').forEach((nav) => {
   const target = document.querySelector(nav.dataset.target);
   if (!target) return;
-  nav.querySelectorAll('.carousel-arrow').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const dir = btn.classList.contains('next') ? 1 : -1;
-      target.scrollBy({ left: dir * target.clientWidth * 0.8, behavior: 'smooth' });
+  function step(dir) {
+    const items = [...target.querySelectorAll('.video-card, .song-card')]
+      .filter(it => it.offsetParent !== null); // skip hidden marquee clones
+    if (!items.length) return;
+    const crect = target.getBoundingClientRect();
+    const cc = crect.left + crect.width / 2;
+    let idx = 0, best = Infinity;
+    items.forEach((it, i) => {
+      const r = it.getBoundingClientRect();
+      const d = Math.abs((r.left + r.width / 2) - cc);
+      if (d < best) { best = d; idx = i; }
     });
+    const t = items[Math.max(0, Math.min(items.length - 1, idx + dir))];
+    const r = t.getBoundingClientRect();
+    target.scrollBy({ left: (r.left + r.width / 2) - cc, behavior: 'smooth' });
+  }
+  nav.querySelectorAll('.carousel-arrow').forEach((btn) => {
+    btn.addEventListener('click', () => step(btn.classList.contains('next') ? 1 : -1));
   });
 });
 
