@@ -474,3 +474,17 @@ document.querySelectorAll('.carousel-nav').forEach((nav) => {
   script.src = '/_vercel/speed-insights/script.js';
   document.head.appendChild(script);
 })();
+
+// Vercel Web Analytics (static-site integration — no npm/React needed)
+(function() {
+  if (typeof window === 'undefined') return;
+
+  window.va = window.va || function() {
+    (window.vaq = window.vaq || []).push(arguments);
+  };
+
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = '/_vercel/insights/script.js';
+  document.head.appendChild(script);
+})();
