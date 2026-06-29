@@ -9,11 +9,19 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+// Flash the "c" key-hint into a tick (no toast)
+const copyKey = document.getElementById('copy-key');
+let keyTimer;
+function flashTick() {
+  if (!copyKey) return;
+  copyKey.textContent = '✓';
+  copyKey.classList.add('copied');
+  clearTimeout(keyTimer);
+  keyTimer = setTimeout(() => { copyKey.textContent = 'c'; copyKey.classList.remove('copied'); }, 1500);
+}
+
 function copyEmail() {
-  navigator.clipboard.writeText(EMAIL).then(
-    () => showToast(EMAIL + ' copied to clipboard'),
-    () => showToast('couldn\'t copy — email is ' + EMAIL)
-  );
+  navigator.clipboard.writeText(EMAIL).then(flashTick, () => {});
 }
 
 // Press "c" anywhere (outside inputs) to copy email
@@ -25,7 +33,15 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-document.getElementById('copy-email').addEventListener('click', copyEmail);
+// In-chat Copy button — brief "Copied" label instead of a toast
+const copyBtn = document.getElementById('copy-email');
+let btnTimer;
+copyBtn.addEventListener('click', () => {
+  copyEmail();
+  copyBtn.textContent = 'Copied';
+  clearTimeout(btnTimer);
+  btnTimer = setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+});
 
 // Contact form — submits via Web3Forms. Until a real access key is set below,
 // it falls back to opening the visitor's mail client so the form still works.
@@ -69,16 +85,6 @@ document.getElementById('contact-form').addEventListener('submit', (e) => {
     })
     .catch(() => showToast('network hiccup — try emailing me directly'));
 });
-
-// Live UTC clock in the footer
-const clock = document.getElementById('utc-clock');
-function tick() {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  clock.textContent = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())} UTC`;
-}
-tick();
-setInterval(tick, 1000);
 
 // Total Viewcount — odometer reels. Random start (64,000,000–64,500,000),
 // casino-style roll-up on load, then +10–45 every 5s. Each digit's motion blur
@@ -288,13 +294,16 @@ setInterval(tick, 1000);
   };
 
   function makeCard(file, kw) {
-    const card = document.createElement('div');
+    const card = document.createElement('a');
     card.className = 'video-card';
     card.dataset.kw = kw;
     card.dataset.file = file;
+    const meta = DESC[file];
+    if (meta) { card.href = meta[1]; card.target = '_blank'; card.rel = 'noopener'; }
     const v = document.createElement('video');
     v.src = 'videos/' + file + '.mp4';
-    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+    // lazy: don't fetch until the clip is near the viewport (see updatePlayback)
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
     v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
     card.appendChild(v);
     return card;
@@ -338,6 +347,7 @@ setInterval(tick, 1000);
     clearActive();
     if (track) track.style.transform = '';
     if (caption) caption.classList.remove('show');
+    stack.classList.remove('show-arrows');
     baseLeft = null;
   }
 
@@ -351,17 +361,13 @@ setInterval(tick, 1000);
     card.style.transform = 'perspective(900px) rotateY(0deg) scale(1.2)';
     card.style.zIndex = '50';
     card.classList.add('focused');
+    stack.classList.add('show-arrows');
     const kwEl = kws[card.dataset.kw];
     if (kwEl) kwEl.classList.add('active');
     if (caption) {
       const meta = DESC[card.dataset.file];
-      if (meta) {
-        caption.innerHTML = `<a href="${meta[1]}" target="_blank" rel="noopener">${meta[0]}</a>`;
-        caption.classList.add('show');
-      } else {
-        caption.classList.remove('show');
-        caption.innerHTML = '';
-      }
+      if (meta) { caption.textContent = meta[0]; caption.classList.add('show'); }
+      else { caption.classList.remove('show'); caption.textContent = ''; }
     }
   }
 
@@ -377,7 +383,25 @@ setInterval(tick, 1000);
     }
     if (target) activate(target);
   });
-  stack.addEventListener('mouseleave', () => { if (isDesktop()) deactivate(); });
+
+  // Keep the focus alive across the whole zone (clip + caption below it), so
+  // moving down to the description doesn't collapse the hover state.
+  const zone = stack.closest('.video-zone') || stack;
+  zone.addEventListener('mouseleave', () => { if (isDesktop()) deactivate(); });
+
+  // Plain prev/next arrows (visible only while focused) — step the focused clip
+  const prevBtn = stack.querySelector('.video-arrow.prev');
+  const nextBtn = stack.querySelector('.video-arrow.next');
+  function step(delta) {
+    if (!active) return;
+    const i = cards.indexOf(active);
+    activate(cards[(i + delta + cards.length) % cards.length]);
+  }
+  [prevBtn, nextBtn].forEach((btn, i) => {
+    if (!btn) return;
+    btn.addEventListener('click', (e) => { e.preventDefault(); step(i === 0 ? -1 : 1); });
+    btn.addEventListener('mousemove', (e) => e.stopPropagation()); // don't re-target while on an arrow
+  });
 
   // Play only the videos currently on-screen (rect-based: the marquee moves
   // cards via transform, which IntersectionObserver doesn't track reliably).
@@ -386,7 +410,8 @@ setInterval(tick, 1000);
     const vw = window.innerWidth, vh = window.innerHeight;
     vids.forEach(v => {
       const r = v.getBoundingClientRect();
-      const onScreen = r.right > -60 && r.left < vw + 60 && r.bottom > 0 && r.top < vh;
+      // generous horizontal look-ahead so clips load/start just before they appear
+      const onScreen = r.right > -400 && r.left < vw + 400 && r.bottom > -200 && r.top < vh + 200;
       if (onScreen) { if (v.paused) v.play().catch(() => {}); }
       else if (!v.paused) v.pause();
     });
@@ -426,7 +451,7 @@ document.querySelectorAll('.carousel-nav').forEach((nav) => {
   const root = document.documentElement;
   const btn = document.getElementById('theme-toggle');
   if (!btn) return;
-  const sync = () => { btn.textContent = root.classList.contains('light') ? 'Dark mode' : 'Light mode'; };
+  const sync = () => { btn.setAttribute('aria-checked', root.classList.contains('light') ? 'true' : 'false'); };
   sync();
   btn.addEventListener('click', () => {
     const light = !root.classList.contains('light');

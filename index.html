@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=47">
+  <link rel="stylesheet" href="styles.css?v=53">
 </head>
 <body>
 
@@ -42,7 +42,7 @@
         distribution for companies and creators. Welcome to my corner of the
         internet.
       </p>
-      <p class="hint">Press <kbd>c</kbd> to copy my email</p>
+      <p class="hint">Press <kbd id="copy-key">c</kbd> to copy my email</p>
     </section>
 
     <!-- ============ TOTAL VIEWCOUNT ============ -->
@@ -95,12 +95,16 @@
         <p class="section-label">Stuff I've Done</p>
         <p class="stuff-sublist"><span class="kw" data-kw="launch">Launch Videos.</span> <span class="kw" data-kw="motion">Motion Graphics.</span> <span class="kw" data-kw="youtube">YouTube Videos.</span> <span class="kw" data-kw="map">Map Animations.</span> <span class="kw" data-kw="adfilms">Ad Films.</span> <span class="kw" data-kw="music">Music Videos.</span></p>
       </div>
-      <div class="video-stack" id="video-stack">
-        <div class="video-track">
-          <div class="video-deck"></div>
+      <div class="video-zone">
+        <div class="video-stack" id="video-stack">
+          <div class="video-track">
+            <div class="video-deck"></div>
+          </div>
+          <button class="video-arrow prev" type="button" aria-label="Previous video">&#8249;</button>
+          <button class="video-arrow next" type="button" aria-label="Next video">&#8250;</button>
         </div>
+        <p class="video-caption" id="video-caption"></p>
       </div>
-      <p class="video-caption" id="video-caption"></p>
       <div class="carousel-nav" data-target="#video-stack">
         <button class="carousel-arrow prev" type="button" aria-label="Previous videos">&#8249;</button>
         <button class="carousel-arrow next" type="button" aria-label="Next videos">&#8250;</button>
@@ -174,9 +178,18 @@
         <div class="bubble me social-bubble">
           <p class="bubble-text">mostly instagram and x. if you're building something fun, we can connect on a quick call.</p>
           <div class="social-row">
-            <a href="https://calendar.app.google/pHVBg1ZyzNjFgGBr9" class="pill" target="_blank" rel="noopener">Book a call</a>
-            <a href="https://www.instagram.com/itsnotraunaq/" class="pill" target="_blank" rel="noopener">Instagram</a>
-            <a href="https://x.com/itsnotraunaq" class="pill" target="_blank" rel="noopener">X</a>
+            <a href="https://calendar.app.google/pHVBg1ZyzNjFgGBr9" class="pill" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6A2 2 0 0 1 22 16.9z"/></svg>
+              Book a call
+            </a>
+            <a href="https://www.instagram.com/itsnotraunaq/" class="pill" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+              Instagram
+            </a>
+            <a href="https://x.com/itsnotraunaq" class="pill" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-7.1 8.1L23.2 22h-6.6l-5.2-6.8L5.5 22H2.4l7.6-8.7L1.6 2h6.8l4.7 6.2L18.9 2zm-1.2 18h1.8L7.4 3.9H5.5L17.7 20z"/></svg>
+              Twitter
+            </a>
           </div>
         </div>
         <p class="bubble them">great! i'll see you there.</p>
@@ -188,15 +201,15 @@
 
   <footer class="site-footer">
     <span>Ronit Soin</span>
-    <span id="utc-clock" aria-label="Current UTC time">00:00:00 UTC</span>
+    <button id="theme-toggle" class="theme-switch" type="button" role="switch" aria-checked="false" aria-label="Toggle light mode">
+      <span class="switch-icon moon">☾</span>
+      <span class="switch-track"><span class="switch-thumb"></span></span>
+      <span class="switch-icon sun">☀</span>
+    </button>
   </footer>
-
-  <div class="theme-toggle-wrap">
-    <button id="theme-toggle" type="button">Light mode</button>
-  </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=45"></script>
+  <script src="script.js?v=48"></script>
 </body>
 </html>
