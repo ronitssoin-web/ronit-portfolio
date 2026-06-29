@@ -166,7 +166,7 @@ main {
 
 .hint {
   margin-top: 28px;
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 12px;
   color: var(--faint);
 }
@@ -180,6 +180,24 @@ kbd {
   padding: 1px 6px;
   background: var(--card);
   color: var(--text);
+}
+
+#copy-key {
+  display: inline-block;
+  min-width: 1.1em;
+  text-align: center;
+}
+
+#copy-key.copied {
+  color: #2ea043;
+  border-color: #2ea043;
+  animation: kbd-pop 0.32s ease;
+}
+
+@keyframes kbd-pop {
+  0% { transform: scale(0.7); }
+  55% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 /* ============ Sections ============ */

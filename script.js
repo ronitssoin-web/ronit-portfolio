@@ -9,11 +9,19 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+// Flash the "c" key-hint into a tick (no toast)
+const copyKey = document.getElementById('copy-key');
+let keyTimer;
+function flashTick() {
+  if (!copyKey) return;
+  copyKey.textContent = '✓';
+  copyKey.classList.add('copied');
+  clearTimeout(keyTimer);
+  keyTimer = setTimeout(() => { copyKey.textContent = 'c'; copyKey.classList.remove('copied'); }, 1500);
+}
+
 function copyEmail() {
-  navigator.clipboard.writeText(EMAIL).then(
-    () => showToast(EMAIL + ' copied to clipboard'),
-    () => showToast('couldn\'t copy — email is ' + EMAIL)
-  );
+  navigator.clipboard.writeText(EMAIL).then(flashTick, () => {});
 }
 
 // Press "c" anywhere (outside inputs) to copy email
@@ -25,7 +33,15 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-document.getElementById('copy-email').addEventListener('click', copyEmail);
+// In-chat Copy button — brief "Copied" label instead of a toast
+const copyBtn = document.getElementById('copy-email');
+let btnTimer;
+copyBtn.addEventListener('click', () => {
+  copyEmail();
+  copyBtn.textContent = 'Copied';
+  clearTimeout(btnTimer);
+  btnTimer = setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+});
 
 // Contact form — submits via Web3Forms. Until a real access key is set below,
 // it falls back to opening the visitor's mail client so the form still works.
