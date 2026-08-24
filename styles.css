@@ -374,12 +374,19 @@ kbd {
   backface-visibility: hidden;
 }
 
-/* Hover: dim the row; JS centers + scales the focused clip (.focused stays bright) */
-.video-stack:hover .video-card { filter: brightness(0.4); }
-.video-stack:hover .video-card.focused {
+/* Hover: dim the row; JS centers + scales the focused clip (.focused stays bright).
+   Non-focused clips also go unclickable, so reaching for the arrows can't
+   land on — or re-target — a different clip along the way. `.kw-active` mirrors
+   this when the focus was triggered by hovering a "Stuff I've Done" keyword
+   instead of the row itself. */
+.video-stack:hover .video-card,
+.video-stack.kw-active .video-card { filter: brightness(0.4); pointer-events: none; }
+.video-stack:hover .video-card.focused,
+.video-stack.kw-active .video-card.focused {
   filter: brightness(1);
   z-index: 50;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
 }
 
 /* Hovered-clip caption (desktop) — plain grey text */
