@@ -326,4 +326,190 @@ document.getElementById('contact-form').addEventListener('submit', (e) => {
   VIDEOS.forEach(([f, kw]) => deck.appendChild(makeCard(f, kw)));
   VIDEOS.forEach(([f, kw]) => {
     const c = makeCard(f, kw);
-    c.set
+    c.setAttribute('aria-hidden', 'true');
+    deck.appendChild(c);
+  });
+  const cards = [...deck.querySelectorAll('.video-card')];
+
+  // Shift the marquee by exactly one set's width (handles the overlap margins)
+  deck.style.setProperty('--vc-shift', deck.children[VIDEOS.length].offsetLeft + 'px');
+
+  /* ---- Desktop hover focus ----
+     Center the clip under the cursor, scale it up 20%, dim the rest, light its
+     keyword and show its caption. The target is picked by the cursor's layout
+     slot (offsetLeft) — unaffected by transforms — so the centered card never
+     slides out from under the cursor and causes oscillation. */
+  const caption = document.getElementById('video-caption');
+  const track = stack.querySelector('.video-track');
+  const isDesktop = () => window.matchMedia('(min-width: 769px)').matches;
+  let active = null;
+  let baseLeft = null; // deck's frozen screen-left at hover start — a stable slot anchor
+
+  function clearActive() {
+    if (!active) return;
+    active.classList.remove('focused');
+    active.style.transform = '';
+    active.style.zIndex = '';
+    const kwEl = kws[active.dataset.kw];
+    if (kwEl) kwEl.classList.remove('active');
+    active = null;
+  }
+
+  function deactivate() {
+    clearActive();
+    if (track) track.style.transform = '';
+    if (caption) caption.classList.remove('show');
+    stack.classList.remove('show-arrows');
+    baseLeft = null;
+  }
+
+  function activate(card) {
+    if (card === active) return;
+    clearActive();
+    active = card;
+    // slide the whole row so this clip sits at viewport centre (others move in tandem)
+    const V = window.innerWidth / 2 - baseLeft - card.offsetLeft - card.offsetWidth / 2;
+    if (track) track.style.transform = `translateX(${V}px)`;
+    card.style.transform = 'perspective(900px) rotateY(0deg) scale(1.2)';
+    card.style.zIndex = '50';
+    card.classList.add('focused');
+    stack.classList.add('show-arrows');
+    const kwEl = kws[card.dataset.kw];
+    if (kwEl) kwEl.classList.add('active');
+    if (caption) {
+      const meta = DESC[card.dataset.file];
+      if (meta) { caption.textContent = meta[0]; caption.classList.add('show'); }
+      else { caption.classList.remove('show'); caption.textContent = ''; }
+    }
+  }
+
+  stack.addEventListener('mousemove', (e) => {
+    if (!isDesktop()) return;
+    // capture the anchor once the marquee has paused; keep it fixed for the
+    // whole hover so the cursor→clip mapping doesn't drift as the row slides
+    if (baseLeft === null) baseLeft = deck.getBoundingClientRect().left;
+    const x = e.clientX - baseLeft;
+    let target = null;
+    for (const card of cards) {
+      if (x >= card.offsetLeft && x < card.offsetLeft + card.offsetWidth) target = card;
+    }
+    if (target) activate(target);
+  });
+
+  // Keep the focus alive across the whole zone (clip + caption below it), so
+  // moving down to the description doesn't collapse the hover state.
+  const zone = stack.closest('.video-zone') || stack;
+  zone.addEventListener('mouseleave', () => { if (isDesktop()) deactivate(); });
+
+  // Plain prev/next arrows (visible only while focused) — step the focused clip
+  const prevBtn = stack.querySelector('.video-arrow.prev');
+  const nextBtn = stack.querySelector('.video-arrow.next');
+  function step(delta) {
+    if (!active) return;
+    const i = cards.indexOf(active);
+    activate(cards[(i + delta + cards.length) % cards.length]);
+  }
+  [prevBtn, nextBtn].forEach((btn, i) => {
+    if (!btn) return;
+    btn.addEventListener('click', (e) => { e.preventDefault(); step(i === 0 ? -1 : 1); });
+    btn.addEventListener('mousemove', (e) => e.stopPropagation()); // don't re-target while on an arrow
+  });
+
+  // Play only the videos currently on-screen (rect-based: the marquee moves
+  // cards via transform, which IntersectionObserver doesn't track reliably).
+  const vids = [...deck.querySelectorAll('video')];
+  function updatePlayback() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    vids.forEach(v => {
+      const r = v.getBoundingClientRect();
+      // generous horizontal look-ahead so clips load/start just before they appear
+      const onScreen = r.right > -400 && r.left < vw + 400 && r.bottom > -200 && r.top < vh + 200;
+      if (onScreen) { if (v.paused) v.play().catch(() => {}); }
+      else if (!v.paused) v.pause();
+    });
+  }
+  updatePlayback();
+  setInterval(updatePlayback, 250);
+})();
+
+// Reveal sections on scroll
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.1 }
+);
+document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+// Carousel arrow buttons (mobile) — center the next/prev card in the frame
+document.querySelectorAll('.carousel-nav').forEach((nav) => {
+  const target = document.querySelector(nav.dataset.target);
+  if (!target) return;
+  function step(dir) {
+    const items = [...target.querySelectorAll('.video-card, .song-card')]
+      .filter(it => it.offsetParent !== null); // skip hidden marquee clones
+    if (!items.length) return;
+    const crect = target.getBoundingClientRect();
+    const cc = crect.left + crect.width / 2;
+    let idx = 0, best = Infinity;
+    items.forEach((it, i) => {
+      const r = it.getBoundingClientRect();
+      const d = Math.abs((r.left + r.width / 2) - cc);
+      if (d < best) { best = d; idx = i; }
+    });
+    const t = items[Math.max(0, Math.min(items.length - 1, idx + dir))];
+    const r = t.getBoundingClientRect();
+    target.scrollBy({ left: (r.left + r.width / 2) - cc, behavior: 'smooth' });
+  }
+  nav.querySelectorAll('.carousel-arrow').forEach((btn) => {
+    btn.addEventListener('click', () => step(btn.classList.contains('next') ? 1 : -1));
+  });
+});
+
+// Theme toggle — dark is default; button switches to light and persists
+(() => {
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+  const sync = () => { btn.setAttribute('aria-checked', root.classList.contains('light') ? 'true' : 'false'); };
+  sync();
+  btn.addEventListener('click', () => {
+    const light = !root.classList.contains('light');
+    root.classList.toggle('light', light);
+    try { localStorage.setItem('theme', light ? 'light' : 'dark'); } catch (e) {}
+    sync();
+  });
+})();
+
+// Vercel Speed Insights
+(function() {
+  if (typeof window === 'undefined') return;
+  
+  window.si = window.si || function() {
+    (window.siq = window.siq || []).push(arguments);
+  };
+  
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = '/_vercel/speed-insights/script.js';
+  document.head.appendChild(script);
+})();
+
+// Vercel Web Analytics (static-site integration — no npm/React needed)
+(function() {
+  if (typeof window === 'undefined') return;
+
+  window.va = window.va || function() {
+    (window.vaq = window.vaq || []).push(arguments);
+  };
+
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = '/_vercel/insights/script.js';
+  document.head.appendChild(script);
+})();
